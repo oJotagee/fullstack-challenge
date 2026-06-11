@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RoundStatus {
+  BETTING
+  RUNNING
+  CRASHED
+  SETTLED
+  CANCELLED
+}
+
+enum BetStatus {
+  PENDING_DEBIT
+  ACCEPTED
+  REJECTED
+  CASHED_OUT
+  LOST
+}
+
+enum BetRejectedReason {
+  INSUFFICIENT_FUNDS
+  DUPLICATED_BET
+  ROUND_NOT_BETTING
+  UNKNOWN
+}
+
+model Round {
+  id               String      @id
+  status           RoundStatus @default(BETTING)
+  serverSeedHash   String      @map("server_seed_hash")
+  serverSeed       String?     @map("server_seed")
+  clientSeed       String?     @map("client_seed")
+  nonce            Int?
+  crashPoint       Decimal?    @map("crash_point") @db.Decimal(10, 4)
+  bettingStartedAt DateTime    @default(now()) @map("betting_started_at")
+  bettingEndsAt    DateTime    @map("betting_ends_at")
+  runningStartedAt DateTime?   @map("running_started_at")
+  crashedAt        DateTime?   @map("crashed_at")
+  settledAt        DateTime?   @map("settled_at")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  bets Bet[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("rounds")
+}
+
+model Bet {
+  id                String             @id
+  roundId           String             @map("round_id")
+  playerId          String             @map("player_id")
+  username          String
+  amountCents       BigInt             @map("amount_cents")
+  status            BetStatus          @default(PENDING_DEBIT)
+  rejectedReason    BetRejectedReason? @map("rejected_reason")
+  cashoutMultiplier Decimal?           @map("cashout_multiplier") @db.Decimal(10, 4)
+  payoutCents       BigInt?            @map("payout_cents")
+  debitOperationId  String?            @unique @map("debit_operation_id")
+  creditOperationId String?            @unique @map("credit_operation_id")
+  acceptedAt        DateTime?          @map("accepted_at")
+  rejectedAt        DateTime?          @map("rejected_at")
+  cashedOutAt       DateTime?          @map("cashed_out_at")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  round Round @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@unique([roundId, playerId])
+  @@index([playerId])
+  @@index([roundId, status])
+  @@map("bets")
+}

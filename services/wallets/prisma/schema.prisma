@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum LedgerEntryType {
+  DEBIT
+  CREDIT
+  ADJUSTMENT
+}
+
+model Wallet {
+  id           String   @id
+  playerId     String   @unique @map("player_id")
+  balanceCents BigInt   @map("balance_cents")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  ledgerEntries LedgerEntry[]
+
+  @@map("wallets")
+}
+
+model LedgerEntry {
+  id                String          @id
+  walletId          String          @map("wallet_id")
+  operationId       String          @unique @map("operation_id")
+  roundId           String?         @map("round_id")
+  betId             String?         @map("bet_id")
+  type              LedgerEntryType
+  amountCents       BigInt          @map("amount_cents")
+  balanceAfterCents BigInt          @map("balance_after_cents")
+  metadata          Json?
+  createdAt         DateTime        @default(now()) @map("created_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id])
+
+  @@index([walletId])
+  @@index([roundId, betId])
+  @@map("ledger_entries")
+}

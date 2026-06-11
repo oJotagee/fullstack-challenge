@@ -9,8 +9,9 @@
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
+    "types": ["bun-types"],
     "incremental": true,
+    "composite": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
     "noImplicitAny": true,
@@ -18,9 +19,10 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
+      "@generated/*": ["./generated/*"],
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "generated/**/*", "prisma.config.ts"],
   "exclude": ["node_modules", "dist", "tests"]
 }
