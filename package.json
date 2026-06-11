@@ -16,6 +16,11 @@
     "prisma:generate": "bun run prisma:generate:games && bun run prisma:generate:wallets",
     "prisma:migrate:dev:games": "bunx prisma migrate dev --config services/games/prisma.config.ts",
     "prisma:migrate:dev:wallets": "bunx prisma migrate dev --config services/wallets/prisma.config.ts",
+    "prisma:migrate:reset:games": "bunx prisma migrate reset --config services/games/prisma.config.ts",
+    "prisma:migrate:reset:wallets": "bunx prisma migrate reset --config services/wallets/prisma.config.ts",
+    "prisma:migrate:reset": "bun run prisma:migrate:reset:games && bun run prisma:migrate:reset:wallets",
+    "prisma:studio:games": "bunx prisma studio --config services/games/prisma.config.ts",
+    "prisma:studio:wallets": "bunx prisma studio --config services/wallets/prisma.config.ts",
     "format": "prettier --write \"**/*.{ts,tsx}\""
   },
   "devDependencies": {
