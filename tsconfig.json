@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "types": ["bun-types", "node"]
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/shared"
+    },
+    {
+      "path": "./services/games"
+    },
+    {
+      "path": "./services/wallets"
+    }
+  ],
+  "include": ["packages/**/*.ts", "packages/**/*.tsx", "services/**/*.ts", "services/**/*.tsx"],
+  "exclude": ["node_modules", "dist", "build"]
+}

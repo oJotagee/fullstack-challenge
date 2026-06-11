@@ -3,13 +3,10 @@
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
-    "types": ["bun-types"],
     "incremental": true,
     "composite": true,
     "skipLibCheck": true,
@@ -19,10 +16,9 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@generated/*": ["./generated/*"],
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*", "generated/**/*", "prisma.config.ts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "tests"]
 }
