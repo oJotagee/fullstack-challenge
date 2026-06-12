@@ -95,8 +95,8 @@ services:
   # ---------------------------------------------------------------------------
   games:
     build:
-      context: ./services/games
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/games/Dockerfile
     ports:
       - "4001:4001"
     env_file:
@@ -118,8 +118,8 @@ services:
   # ---------------------------------------------------------------------------
   wallets:
     build:
-      context: ./services/wallets
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/wallets/Dockerfile
     ports:
       - "4002:4002"
     env_file:

@@ -21,7 +21,13 @@
     "prisma:migrate:reset": "bun run prisma:migrate:reset:games && bun run prisma:migrate:reset:wallets",
     "prisma:studio:games": "bunx prisma studio --config services/games/prisma.config.ts",
     "prisma:studio:wallets": "bunx prisma studio --config services/wallets/prisma.config.ts",
-    "format": "prettier --write \"**/*.{ts,tsx}\""
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "test:wallets": "bun --cwd services/wallets test",
+    "test:games": "bun --cwd services/games test",
+    "test:unit": "bun run test:wallets && bun run test:games",
+    "test:coverage:wallets": "bun --cwd services/wallets test --coverage",
+    "test:coverage:games": "bun --cwd services/games test --coverage --pass-with-no-tests",
+    "test:coverage": "bun run test:coverage:wallets && bun run test:coverage:games"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -36,6 +42,9 @@
     "typescript-eslint": "^8.61.0"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.8.0"
+    "@nestjs/swagger": "^11.4.4",
+    "@prisma/adapter-pg": "^7.8.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1"
   }
 }
