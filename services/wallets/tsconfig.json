@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "preserveSymlinks": true,
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
