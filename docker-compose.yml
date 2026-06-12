@@ -5,7 +5,7 @@ services:
   postgres:
     image: postgres:18.3-alpine
     ports:
-      - "5432:5432"
+      - '5432:5432'
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
@@ -15,7 +15,7 @@ services:
       - postgres_data:/var/lib/postgresql
       - ./docker/postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d postgres"]
+      test: ['CMD-SHELL', 'pg_isready -U admin -d postgres']
       interval: 5s
       timeout: 5s
       retries: 10
@@ -26,15 +26,15 @@ services:
   rabbitmq:
     image: rabbitmq:4.2.4-management-alpine
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - '5672:5672'
+      - '15672:15672'
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
       interval: 10s
       timeout: 5s
       retries: 10
@@ -46,15 +46,21 @@ services:
     image: quay.io/keycloak/keycloak:26.5.5
     command: start-dev --import-realm
     ports:
-      - "8080:8080"
+      - '8080:8080'
+      - '9000:9000'
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-      KC_HEALTH_ENABLED: "true"
+      KC_HEALTH_ENABLED: 'true'
+      KC_HTTP_MANAGEMENT_HEALTH_ENABLED: 'true'
     volumes:
       - ./docker/keycloak:/opt/keycloak/data/import:ro
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && cat <&3 | grep -q '200'"]
+      test:
+        [
+          'CMD-SHELL',
+          "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && cat <&3 | grep -q '200'",
+        ]
       interval: 10s
       timeout: 5s
       retries: 15
@@ -66,11 +72,11 @@ services:
   kong:
     image: kong:3.9.1
     ports:
-      - "8000:8000"
-      - "8443:8443"
-      - "8001:8001"
+      - '8000:8000'
+      - '8443:8443'
+      - '8001:8001'
     environment:
-      KONG_DATABASE: "off"
+      KONG_DATABASE: 'off'
       KONG_DECLARATIVE_CONFIG: /kong/kong.yml
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_ADMIN_ACCESS_LOG: /dev/stdout
@@ -80,7 +86,7 @@ services:
     volumes:
       - ./docker/kong:/kong:ro
     healthcheck:
-      test: ["CMD", "kong", "health"]
+      test: ['CMD', 'kong', 'health']
       interval: 10s
       timeout: 5s
       retries: 10
@@ -98,7 +104,7 @@ services:
       context: .
       dockerfile: services/games/Dockerfile
     ports:
-      - "4001:4001"
+      - '4001:4001'
     env_file:
       - ./services/games/.env
     depends_on:
@@ -107,7 +113,7 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:4001/health || exit 1"]
+      test: ['CMD-SHELL', 'curl -sf http://localhost:4001/health || exit 1']
       interval: 10s
       timeout: 5s
       retries: 10
@@ -121,7 +127,7 @@ services:
       context: .
       dockerfile: services/wallets/Dockerfile
     ports:
-      - "4002:4002"
+      - '4002:4002'
     env_file:
       - ./services/wallets/.env
     depends_on:
@@ -130,23 +136,24 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:4002/health || exit 1"]
+      test: ['CMD-SHELL', 'curl -sf http://localhost:4002/health || exit 1']
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 15s
 
   # ---------------------------------------------------------------------------
-  # Frontend (placeholder — candidate implements)
+  # Frontend
   # ---------------------------------------------------------------------------
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - kong
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    depends_on:
+      kong:
+        condition: service_healthy
 
 volumes:
   postgres_data:
