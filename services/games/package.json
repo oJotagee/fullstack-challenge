@@ -9,10 +9,12 @@
     "test:e2e": "bun test tests/e2e"
   },
   "dependencies": {
+    "@crash/shared": "workspace:*",
     "@nestjs/common": "^11.1.17",
     "@nestjs/core": "^11.1.17",
     "@nestjs/platform-express": "^11.1.17",
     "@prisma/client": "^7.8.0",
+    "jose": "^6.2.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },
