@@ -8,6 +8,8 @@ type PersistableRound = {
   status: RoundStatus;
   serverSeedHash: string;
   serverSeed?: string;
+  previousServerSeedHash?: string;
+  hashChainIndex?: number;
   clientSeed?: string;
   nonce?: number;
   crashPoint?: number;
@@ -26,6 +28,8 @@ export const RoundMapper = {
       status: round.status as RoundStatus,
       serverSeedHash: round.serverSeedHash,
       serverSeed: round.serverSeed ?? undefined,
+      previousServerSeedHash: round.previousServerSeedHash ?? undefined,
+      hashChainIndex: round.hashChainIndex ?? undefined,
       clientSeed: round.clientSeed ?? undefined,
       nonce: round.nonce ?? undefined,
       crashPoint: round.crashPoint ? Number(round.crashPoint) : undefined,
@@ -46,6 +50,8 @@ export const RoundMapper = {
       status: round.status,
       serverSeedHash: round.serverSeedHash,
       serverSeed: round.serverSeed,
+      previousServerSeedHash: round.previousServerSeedHash,
+      hashChainIndex: round.hashChainIndex,
       clientSeed: round.clientSeed,
       nonce: round.nonce,
       crashPoint: round.crashPoint,

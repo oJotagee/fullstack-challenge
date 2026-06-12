@@ -2,9 +2,12 @@ import { describe, expect, it } from 'bun:test';
 
 import { GetCurrentRoundUseCase } from '../../src/application/use-cases/get-current-round.use-case';
 import { GetRoundHistoryUseCase } from '../../src/application/use-cases/get-round-history.use-case';
+import { SettleLostBetsUseCase } from '../../src/application/use-cases/settle-lost-bets.use-case';
 import { CreateRoundUseCase } from '../../src/application/use-cases/create-round.use-case';
 import { VerifyRoundUseCase } from '../../src/application/use-cases/verify-round.use-case';
+import { FinishRoundUseCase } from '../../src/application/use-cases/finish-round.use-case';
 import type { RoundRepository } from '../../src/application/ports/round-repository.port';
+import { StartRoundUseCase } from '../../src/application/use-cases/start-round.use-case';
 import { GetMyBetsUseCase } from '../../src/application/use-cases/get-my-bets.use-case';
 import type { BetRepository } from '../../src/application/ports/bet-repository.port';
 import { PlaceBetUseCase } from '../../src/application/use-cases/place-bet.use-case';
@@ -12,6 +15,7 @@ import { CashOutUseCase } from '../../src/application/use-cases/cash-out.use-cas
 import type { EventBus } from '../../src/application/ports/event-bus.port';
 import { RoundStatus } from '../../src/domain/round/round-status.enum';
 import type { Clock } from '../../src/application/ports/clock.port';
+import { BetStatus } from '../../src/domain/bet/bet-status.enum';
 import { Round } from '../../src/domain/round/round.entity';
 import { Bet } from '../../src/domain/bet/bet.entity';
 import {
@@ -34,6 +38,10 @@ class FakeClock implements Clock {
 
   now(): Date {
     return this.currentTime;
+  }
+
+  set(now: Date): void {
+    this.currentTime = now;
   }
 }
 
@@ -59,6 +67,14 @@ class FakeRoundRepository implements RoundRepository {
       [...this.rounds.values()].find((round) =>
         [RoundStatus.BETTING, RoundStatus.RUNNING].includes(round.status),
       ) ?? null
+    );
+  }
+
+  async findLatest(): Promise<Round | null> {
+    return (
+      [...this.rounds.values()].sort(
+        (left, right) => right.createdAt.getTime() - left.createdAt.getTime(),
+      )[0] ?? null
     );
   }
 
@@ -289,6 +305,34 @@ describe('Game use cases', () => {
     ).rejects.toThrow(CurrentRoundNotFoundError);
   });
 
+  it('starts a betting round and publishes round.running.started', async () => {
+    const { rounds, eventBus, clock } = createUseCaseDependencies();
+    const round = createBettingRound(clock.now());
+    await rounds.save(round);
+    const useCase = new StartRoundUseCase(rounds, eventBus, clock);
+
+    const output = await useCase.execute({
+      roundId: round.id,
+      clientSeed: 'client-seed-1',
+      nonce: 1,
+      crashPoint: 2,
+    });
+
+    expect(output).toEqual({
+      roundId: round.id,
+      status: RoundStatus.RUNNING,
+      crashPoint: 2,
+      startedAt: '2026-01-01T00:00:00.000Z',
+    });
+    expect(eventBus.events[0]).toEqual({
+      type: 'round.running.started',
+      payload: {
+        roundId: round.id,
+        startedAt: '2026-01-01T00:00:00.000Z',
+      },
+    });
+  });
+
   it('cash out calculates payout and publishes wallet credit request', async () => {
     const { rounds, bets, eventBus, clock } = createUseCaseDependencies();
     const round = createRunningRound();
@@ -302,14 +346,14 @@ describe('Game use cases', () => {
     });
     bet.accept({ debitOperationId: 'bet:bet-1:debit' });
     await bets.save(bet);
+    clock.set(new Date('2026-01-01T00:00:26.000Z'));
     const useCase = new CashOutUseCase(rounds, bets, eventBus, clock);
 
     const output = await useCase.execute({
       playerId: 'player-1',
-      multiplier: 2.5,
     });
 
-    // CashOut calcula payout no dominio e publica o pedido de credito.
+    // CashOut calcula payout no dominio, avisa a UI e publica o pedido de credito.
     expect(output).toEqual({
       betId: 'bet-1',
       roundId: round.id,
@@ -318,6 +362,17 @@ describe('Game use cases', () => {
       multiplier: 2.5,
     });
     expect(eventBus.events[0]).toEqual({
+      type: 'bet.cashed_out',
+      payload: {
+        roundId: round.id,
+        betId: 'bet-1',
+        playerId: 'player-1',
+        username: 'player',
+        multiplier: 2.5,
+        payoutCents: '2500',
+      },
+    });
+    expect(eventBus.events[1]).toEqual({
       type: 'wallet.credit.requested',
       payload: {
         operationId: 'bet:bet-1:credit',
@@ -335,18 +390,18 @@ describe('Game use cases', () => {
     await rounds.save(bettingRound);
     const useCase = new CashOutUseCase(rounds, bets, eventBus, clock);
 
-    await expect(useCase.execute({ playerId: 'player-1', multiplier: 2 })).rejects.toThrow(
-      RoundNotRunningError,
-    );
+    await expect(useCase.execute({ playerId: 'player-1' })).rejects.toThrow(RoundNotRunningError);
 
     const runningRounds = new FakeRoundRepository();
     await runningRounds.save(createRunningRound());
     const runningUseCase = new CashOutUseCase(runningRounds, bets, eventBus, clock);
 
-    await expect(runningUseCase.execute({ playerId: 'player-1', multiplier: 2 })).rejects.toThrow(
+    await expect(runningUseCase.execute({ playerId: 'player-1' })).rejects.toThrow(
       BetNotFoundError,
     );
-    await expect(runningUseCase.execute({ playerId: 'player-1', multiplier: 3 })).rejects.toThrow(
+
+    clock.set(new Date('2026-01-01T00:00:31.000Z'));
+    await expect(runningUseCase.execute({ playerId: 'player-1' })).rejects.toThrow(
       RoundNotRunningError,
     );
   });
@@ -397,6 +452,81 @@ describe('Game use cases', () => {
       clientSeed: 'client-seed-1',
       nonce: 1,
       crashPoint: 2,
+    });
+  });
+
+  it('finishes a running round and publishes round.crashed', async () => {
+    const { rounds, eventBus, clock } = createUseCaseDependencies();
+    const round = createRunningRound();
+    await rounds.save(round);
+    const useCase = new FinishRoundUseCase(rounds, eventBus, clock);
+
+    const output = await useCase.execute({
+      roundId: round.id,
+      serverSeed: 'server-seed-1',
+    });
+
+    expect(output).toEqual({
+      roundId: round.id,
+      status: RoundStatus.CRASHED,
+      crashPoint: 3,
+      crashedAt: '2026-01-01T00:00:00.000Z',
+    });
+    expect(eventBus.events[0]).toEqual({
+      type: 'round.crashed',
+      payload: {
+        roundId: round.id,
+        crashPoint: 3,
+        crashedAt: '2026-01-01T00:00:00.000Z',
+        serverSeed: 'server-seed-1',
+        serverSeedHash: 'hash-1',
+        clientSeed: 'client-seed-1',
+        nonce: 1,
+      },
+    });
+  });
+
+  it('settles accepted bets as lost after crash', async () => {
+    const { rounds, bets, eventBus, clock } = createUseCaseDependencies();
+    const round = createCrashedRound();
+    const acceptedBet = Bet.createPending({
+      id: 'bet-1',
+      roundId: round.id,
+      playerId: 'player-1',
+      username: 'player',
+      amountCents: 1000n,
+    });
+    const cashedOutBet = Bet.createPending({
+      id: 'bet-2',
+      roundId: round.id,
+      playerId: 'player-2',
+      username: 'player-2',
+      amountCents: 1000n,
+    });
+    acceptedBet.accept({ debitOperationId: 'bet:bet-1:debit' });
+    cashedOutBet.accept({ debitOperationId: 'bet:bet-2:debit' });
+    cashedOutBet.cashOut({ multiplier: 2, creditOperationId: 'bet:bet-2:credit' });
+    await rounds.save(round);
+    await bets.save(acceptedBet);
+    await bets.save(cashedOutBet);
+    const useCase = new SettleLostBetsUseCase(rounds, bets, eventBus, clock);
+
+    const output = await useCase.execute({ roundId: round.id });
+
+    expect(output).toEqual({
+      roundId: round.id,
+      lostBetsCount: 1,
+      settledAt: '2026-01-01T00:00:00.000Z',
+    });
+    expect(acceptedBet.status).toBe(BetStatus.LOST);
+    expect(cashedOutBet.status).toBe(BetStatus.CASHED_OUT);
+    expect(eventBus.events[0]).toEqual({
+      type: 'round.settled',
+      payload: {
+        roundId: round.id,
+        settledAt: '2026-01-01T00:00:00.000Z',
+        lostBetsCount: 1,
+      },
     });
   });
 

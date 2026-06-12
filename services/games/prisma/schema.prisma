@@ -31,25 +31,28 @@ enum BetRejectedReason {
 }
 
 model Round {
-  id               String      @id
-  status           RoundStatus @default(BETTING)
-  serverSeedHash   String      @map("server_seed_hash")
-  serverSeed       String?     @map("server_seed")
-  clientSeed       String?     @map("client_seed")
-  nonce            Int?
-  crashPoint       Decimal?    @map("crash_point") @db.Decimal(10, 4)
-  bettingStartedAt DateTime    @default(now()) @map("betting_started_at")
-  bettingEndsAt    DateTime    @map("betting_ends_at")
-  runningStartedAt DateTime?   @map("running_started_at")
-  crashedAt        DateTime?   @map("crashed_at")
-  settledAt        DateTime?   @map("settled_at")
-  createdAt        DateTime    @default(now()) @map("created_at")
-  updatedAt        DateTime    @updatedAt @map("updated_at")
+  id                     String      @id
+  status                 RoundStatus @default(BETTING)
+  serverSeedHash         String      @map("server_seed_hash")
+  serverSeed             String?     @map("server_seed")
+  previousServerSeedHash String?     @map("previous_server_seed_hash")
+  hashChainIndex         Int?        @map("hash_chain_index")
+  clientSeed             String?     @map("client_seed")
+  nonce                  Int?
+  crashPoint             Decimal?    @map("crash_point") @db.Decimal(10, 4)
+  bettingStartedAt       DateTime    @default(now()) @map("betting_started_at")
+  bettingEndsAt          DateTime    @map("betting_ends_at")
+  runningStartedAt       DateTime?   @map("running_started_at")
+  crashedAt              DateTime?   @map("crashed_at")
+  settledAt              DateTime?   @map("settled_at")
+  createdAt              DateTime    @default(now()) @map("created_at")
+  updatedAt              DateTime    @updatedAt @map("updated_at")
 
   bets Bet[]
 
   @@index([status])
   @@index([createdAt])
+  @@index([hashChainIndex])
   @@map("rounds")
 }
 

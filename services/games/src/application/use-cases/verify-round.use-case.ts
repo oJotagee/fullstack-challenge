@@ -7,6 +7,8 @@ type VerifyRoundOutput = {
   roundId: string;
   serverSeed: string;
   serverSeedHash: string;
+  previousServerSeedHash?: string;
+  hashChainIndex?: number;
   clientSeed: string;
   nonce: number;
   crashPoint: number;
@@ -33,7 +35,7 @@ export class VerifyRoundUseCase {
       throw new RoundFairnessNotRevealedError(input.roundId);
     }
 
-    return {
+    const output: VerifyRoundOutput = {
       roundId: round.id,
       serverSeed: round.serverSeed,
       serverSeedHash: round.serverSeedHash,
@@ -41,5 +43,15 @@ export class VerifyRoundUseCase {
       nonce: round.nonce,
       crashPoint: round.crashPoint,
     };
+
+    if (round.previousServerSeedHash) {
+      output.previousServerSeedHash = round.previousServerSeedHash;
+    }
+
+    if (round.hashChainIndex !== undefined) {
+      output.hashChainIndex = round.hashChainIndex;
+    }
+
+    return output;
   }
 }

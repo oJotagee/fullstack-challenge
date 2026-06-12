@@ -1,5 +1,10 @@
 import { createHash, createHmac } from 'crypto';
 
+export type HashChain = {
+  rootHash: string;
+  seeds: string[];
+};
+
 export class CrashPointCalculator {
   constructor() {}
 
@@ -13,6 +18,28 @@ export class CrashPointCalculator {
 
   verifySeed(serverSeed: string, expectedHash: string): boolean {
     return this.hashSeed(serverSeed) === expectedHash;
+  }
+
+  createHashChain(terminalSeed: string, length: number): HashChain {
+    if (!terminalSeed.trim()) {
+      throw new Error('Terminal seed is required.');
+    }
+
+    if (!Number.isInteger(length) || length < 1) {
+      throw new Error('Hash chain length must be a positive integer.');
+    }
+
+    const links = [terminalSeed];
+
+    for (let index = 0; index < length; index += 1) {
+      links.push(this.hashSeed(links[index]));
+    }
+
+    return {
+      rootHash: links[length],
+      // Rodadas consomem a cadeia de tras para frente: revelar uma seed nao revela a proxima.
+      seeds: links.slice(0, length).reverse(),
+    };
   }
 
   calculate(serverSeed: string, clientSeed: string, nonce: number): number {

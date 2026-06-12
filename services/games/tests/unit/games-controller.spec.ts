@@ -12,7 +12,6 @@ import type { PlaceBetUseCase } from '../../src/application/use-cases/place-bet.
 import type { CashOutUseCase } from '../../src/application/use-cases/cash-out.use-case';
 import { GamesController } from '../../src/presentation/controllers/games.controller';
 import { PlaceBetRequestDto } from '../../src/presentation/dtos/place-bet.request';
-import { CashOutRequestDto } from '../../src/presentation/dtos/cash-out.request';
 
 describe('GamesController', () => {
   it('public endpoints call use cases without authenticated request', async () => {
@@ -65,25 +64,21 @@ describe('GamesController', () => {
     });
   });
 
-  it('POST /games/bet/cashout forwards authenticated player and multiplier', async () => {
+  it('POST /games/bet/cashout forwards only authenticated player', async () => {
     const controller = createController();
 
-    await controller.cashout(createRequest('player-1'), { multiplier: 2.5 });
+    await controller.cashout(createRequest('player-1'), {});
 
     expect(controllerDeps.cashOut.execute).toHaveBeenCalledWith({
       playerId: 'player-1',
-      multiplier: 2.5,
     });
   });
 
   it('rejects invalid DTO payloads', async () => {
     const placeBet = new PlaceBetRequestDto();
     placeBet.amount = '10.999';
-    const cashOut = new CashOutRequestDto();
-    cashOut.multiplier = 0.99;
 
     expect(await validate(placeBet)).toHaveLength(1);
-    expect(await validate(cashOut)).toHaveLength(1);
   });
 
   it('rejects invalid pagination query params', () => {
