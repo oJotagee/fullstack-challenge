@@ -30,14 +30,33 @@ export class PrismaBetRepository implements BetRepository {
     return bet ? BetMapper.toDomain(bet) : null;
   }
 
-  async findByPlayerId(playerId: string): Promise<Bet[]> {
-    // Suporta o futuro endpoint /games/bets/me.
+  async findByPlayerId(
+    playerId: string,
+    pagination: { limit: number; offset: number } = { limit: 20, offset: 0 },
+  ): Promise<Bet[]> {
+    // Historico pessoal e paginado para nao crescer sem limite.
     const bets = await this.prisma.bet.findMany({
       where: { playerId },
       orderBy: { createdAt: 'desc' },
+      take: pagination.limit,
+      skip: pagination.offset,
     });
 
     return bets.map((bet) => BetMapper.toDomain(bet));
+  }
+
+  async findByRoundId(roundId: string): Promise<Bet[]> {
+    // Estado atual da rodada precisa listar apostas para inicializar a tela.
+    const bets = await this.prisma.bet.findMany({
+      where: { roundId },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return bets.map((bet) => BetMapper.toDomain(bet));
+  }
+
+  async countByPlayerId(playerId: string): Promise<number> {
+    return this.prisma.bet.count({ where: { playerId } });
   }
 
   async save(bet: Bet): Promise<void> {

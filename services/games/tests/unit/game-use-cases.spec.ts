@@ -62,10 +62,16 @@ class FakeRoundRepository implements RoundRepository {
     );
   }
 
-  async findHistory(limit: number): Promise<Round[]> {
+  async findHistory(pagination: { limit: number; offset: number }): Promise<Round[]> {
     return [...this.rounds.values()]
       .filter((round) => [RoundStatus.CRASHED, RoundStatus.SETTLED].includes(round.status))
-      .slice(0, limit);
+      .slice(pagination.offset, pagination.offset + pagination.limit);
+  }
+
+  async countHistory(): Promise<number> {
+    return [...this.rounds.values()].filter((round) =>
+      [RoundStatus.CRASHED, RoundStatus.SETTLED].includes(round.status),
+    ).length;
   }
 
   async save(round: Round): Promise<void> {
@@ -82,14 +88,26 @@ class FakeBetRepository implements BetRepository {
 
   async findByRoundIdAndPlayerId(roundId: string, playerId: string): Promise<Bet | null> {
     return (
-      [...this.bets.values()].find(
-        (bet) => bet.roundId === roundId && bet.playerId === playerId,
-      ) ?? null
+      [...this.bets.values()].find((bet) => bet.roundId === roundId && bet.playerId === playerId) ??
+      null
     );
   }
 
-  async findByPlayerId(playerId: string): Promise<Bet[]> {
-    return [...this.bets.values()].filter((bet) => bet.playerId === playerId);
+  async findByPlayerId(
+    playerId: string,
+    pagination: { limit: number; offset: number } = { limit: 20, offset: 0 },
+  ): Promise<Bet[]> {
+    return [...this.bets.values()]
+      .filter((bet) => bet.playerId === playerId)
+      .slice(pagination.offset, pagination.offset + pagination.limit);
+  }
+
+  async findByRoundId(roundId: string): Promise<Bet[]> {
+    return [...this.bets.values()].filter((bet) => bet.roundId === roundId);
+  }
+
+  async countByPlayerId(playerId: string): Promise<number> {
+    return [...this.bets.values()].filter((bet) => bet.playerId === playerId).length;
   }
 
   async save(bet: Bet): Promise<void> {
@@ -169,15 +187,57 @@ describe('Game use cases', () => {
     const closedRound = createBettingRound(new Date('2025-01-01T00:00:00.000Z'));
     const closedRounds = new FakeRoundRepository();
     await closedRounds.save(closedRound);
-    const closedUseCase = new PlaceBetUseCase(closedRounds, new FakeBetRepository(), eventBus, clock);
+    const closedUseCase = new PlaceBetUseCase(
+      closedRounds,
+      new FakeBetRepository(),
+      eventBus,
+      clock,
+    );
 
     await expect(closedUseCase.execute(input)).rejects.toThrow(RoundNotBettingError);
   });
 
   it('current round fails when there is no active round', async () => {
-    const useCase = new GetCurrentRoundUseCase(new FakeRoundRepository());
+    const useCase = new GetCurrentRoundUseCase(new FakeRoundRepository(), new FakeBetRepository());
 
     await expect(useCase.execute()).rejects.toThrow(CurrentRoundNotFoundError);
+  });
+
+  it('current round returns round state with bets', async () => {
+    const { rounds, bets, clock } = createUseCaseDependencies();
+    const round = createBettingRound(clock.now());
+    await rounds.save(round);
+    await bets.save(
+      Bet.createPending({
+        id: 'bet-1',
+        roundId: round.id,
+        playerId: 'player-1',
+        username: 'player',
+        amountCents: 1000n,
+      }),
+    );
+    const useCase = new GetCurrentRoundUseCase(rounds, bets);
+
+    const output = await useCase.execute();
+
+    expect(output).toEqual({
+      id: round.id,
+      status: RoundStatus.BETTING,
+      serverSeedHash: 'hash-1',
+      bettingEndsAt: '2026-01-01T00:00:10.000Z',
+      crashPoint: undefined,
+      bets: [
+        {
+          id: 'bet-1',
+          playerId: 'player-1',
+          username: 'player',
+          status: 'PENDING_DEBIT',
+          amountCents: '1000',
+          cashoutMultiplier: undefined,
+          payoutCents: undefined,
+        },
+      ],
+    });
   });
 
   it('gets authenticated player bet history', async () => {
@@ -195,7 +255,7 @@ describe('Game use cases', () => {
     await bets.save(bet);
     const useCase = new GetMyBetsUseCase(bets);
 
-    const output = await useCase.execute({ playerId: 'player-1' });
+    const output = await useCase.execute({ playerId: 'player-1', page: 1, limit: 10 });
 
     expect(output.bets).toEqual([
       {
@@ -208,6 +268,12 @@ describe('Game use cases', () => {
         createdAt: '2026-01-01T00:00:00.000Z',
       },
     ]);
+    expect(output.pagination).toEqual({
+      page: 1,
+      limit: 10,
+      total: 1,
+      totalPages: 1,
+    });
   });
 
   it('place bet fails when there is no current round', async () => {
@@ -280,9 +346,9 @@ describe('Game use cases', () => {
     await expect(runningUseCase.execute({ playerId: 'player-1', multiplier: 2 })).rejects.toThrow(
       BetNotFoundError,
     );
-    await expect(
-      runningUseCase.execute({ playerId: 'player-1', multiplier: 3 }),
-    ).rejects.toThrow(RoundNotRunningError);
+    await expect(runningUseCase.execute({ playerId: 'player-1', multiplier: 3 })).rejects.toThrow(
+      RoundNotRunningError,
+    );
   });
 
   it('history returns crashed rounds', async () => {
@@ -298,7 +364,7 @@ describe('Game use cases', () => {
     await rounds.save(bettingRound);
     const useCase = new GetRoundHistoryUseCase(rounds);
 
-    const output = await useCase.execute({ limit: 20 });
+    const output = await useCase.execute({ page: 1, limit: 20 });
 
     expect(output.rounds).toEqual([
       {
@@ -308,6 +374,12 @@ describe('Game use cases', () => {
         serverSeedHash: 'hash-1',
       },
     ]);
+    expect(output.pagination).toEqual({
+      page: 1,
+      limit: 20,
+      total: 1,
+      totalPages: 1,
+    });
   });
 
   it('verify returns revealed fairness data', async () => {

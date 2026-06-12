@@ -91,7 +91,9 @@ describe('Game JwtAuthGuard', () => {
       otherClient.canActivate(createContext({ headers: { authorization: 'Bearer valid-token' } })),
     ).rejects.toThrow(UnauthorizedException);
     await expect(
-      withoutPlayer.canActivate(createContext({ headers: { authorization: 'Bearer valid-token' } })),
+      withoutPlayer.canActivate(
+        createContext({ headers: { authorization: 'Bearer valid-token' } }),
+      ),
     ).rejects.toThrow(UnauthorizedException);
   });
 

@@ -31,7 +31,7 @@ export class PrismaRoundRepository implements RoundRepository {
     return round ? RoundMapper.toDomain(round) : null;
   }
 
-  async findHistory(limit: number): Promise<Round[]> {
+  async findHistory(pagination: { limit: number; offset: number }): Promise<Round[]> {
     // Historico considera apenas rodadas que ja possuem crash point.
     const rounds = await this.prisma.round.findMany({
       where: {
@@ -41,10 +41,22 @@ export class PrismaRoundRepository implements RoundRepository {
         crashPoint: { not: null },
       },
       orderBy: { crashedAt: 'desc' },
-      take: limit,
+      take: pagination.limit,
+      skip: pagination.offset,
     });
 
     return rounds.map((round) => RoundMapper.toDomain(round));
+  }
+
+  async countHistory(): Promise<number> {
+    return this.prisma.round.count({
+      where: {
+        status: {
+          in: [RoundStatus.CRASHED, RoundStatus.SETTLED],
+        },
+        crashPoint: { not: null },
+      },
+    });
   }
 
   async save(round: Round): Promise<void> {

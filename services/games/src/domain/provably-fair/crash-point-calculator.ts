@@ -29,9 +29,7 @@ export class CrashPointCalculator {
     }
 
     // HMAC torna o ponto de crash deterministico e verificavel depois que a seed e revelada.
-    const hmac = createHmac('sha256', serverSeed)
-      .update(`${clientSeed}:${nonce}`)
-      .digest('hex');
+    const hmac = createHmac('sha256', serverSeed).update(`${clientSeed}:${nonce}`).digest('hex');
 
     const value = Number.parseInt(hmac.slice(0, 13), 16);
     const max = 0x1fffffffffffff;

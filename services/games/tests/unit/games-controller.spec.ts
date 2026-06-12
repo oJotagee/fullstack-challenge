@@ -1,5 +1,6 @@
 import { describe, expect, it, mock } from 'bun:test';
 
+import { BadRequestException } from '@nestjs/common';
 import { validate } from 'class-validator';
 
 import type { GetCurrentRoundUseCase } from '../../src/application/use-cases/get-current-round.use-case';
@@ -22,16 +23,34 @@ describe('GamesController', () => {
     await controller.verify('round-1');
 
     expect(controllerDeps.getCurrentRound.execute).toHaveBeenCalled();
-    expect(controllerDeps.getRoundHistory.execute).toHaveBeenCalled();
+    expect(controllerDeps.getRoundHistory.execute).toHaveBeenCalledWith({
+      page: undefined,
+      limit: undefined,
+    });
     expect(controllerDeps.verifyRound.execute).toHaveBeenCalledWith({ roundId: 'round-1' });
+  });
+
+  it('forwards pagination query params to public history', async () => {
+    const controller = createController();
+
+    await controller.history('2', '10');
+
+    expect(controllerDeps.getRoundHistory.execute).toHaveBeenCalledWith({
+      page: 2,
+      limit: 10,
+    });
   });
 
   it('GET /games/bets/me uses authenticated player id', async () => {
     const controller = createController();
 
-    await controller.myBets(createRequest('player-1'));
+    await controller.myBets(createRequest('player-1'), '3', '5');
 
-    expect(controllerDeps.getMyBets.execute).toHaveBeenCalledWith({ playerId: 'player-1' });
+    expect(controllerDeps.getMyBets.execute).toHaveBeenCalledWith({
+      playerId: 'player-1',
+      page: 3,
+      limit: 5,
+    });
   });
 
   it('POST /games/bet converts decimal amount to cents without float', async () => {
@@ -65,6 +84,15 @@ describe('GamesController', () => {
 
     expect(await validate(placeBet)).toHaveLength(1);
     expect(await validate(cashOut)).toHaveLength(1);
+  });
+
+  it('rejects invalid pagination query params', () => {
+    const controller = createController();
+
+    expect(() => controller.history('abc', '10')).toThrow(BadRequestException);
+    expect(() => controller.myBets(createRequest('player-1'), '1', '-1')).toThrow(
+      BadRequestException,
+    );
   });
 });
 

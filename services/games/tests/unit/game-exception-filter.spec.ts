@@ -2,7 +2,10 @@ import { describe, expect, it, mock } from 'bun:test';
 
 import type { ArgumentsHost } from '@nestjs/common';
 
-import { CurrentRoundNotFoundError, RoundNotRunningError } from '../../src/application/use-cases/game-use-case.errors';
+import {
+  CurrentRoundNotFoundError,
+  RoundNotRunningError,
+} from '../../src/application/use-cases/game-use-case.errors';
 import { GameExceptionFilter } from '../../src/presentation/filters/game-exception.filter';
 
 describe('GameExceptionFilter', () => {

@@ -47,12 +47,7 @@ export class Round {
     return new Round({ ...input });
   }
 
-  start(input: {
-    clientSeed: string;
-    nonce: number;
-    crashPoint: number;
-    startedAt?: Date;
-  }): void {
+  start(input: { clientSeed: string; nonce: number; crashPoint: number; startedAt?: Date }): void {
     this.ensureStatus(RoundStatus.BETTING, 'Only betting rounds can start.');
     this.ensureCrashPoint(input.crashPoint);
 

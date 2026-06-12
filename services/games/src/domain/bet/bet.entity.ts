@@ -76,11 +76,7 @@ export class Bet {
     this.props.updatedAt = rejectedAt;
   }
 
-  cashOut(input: {
-    multiplier: number;
-    creditOperationId: string;
-    cashedOutAt?: Date;
-  }): bigint {
+  cashOut(input: { multiplier: number; creditOperationId: string; cashedOutAt?: Date }): bigint {
     this.ensureStatus(BetStatus.ACCEPTED, 'Only accepted bets can cash out.');
     this.ensureMultiplier(input.multiplier);
 

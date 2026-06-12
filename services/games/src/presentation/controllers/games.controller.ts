@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { GetCurrentRoundUseCase } from '@/application/use-cases/get-current-round.use-case';
@@ -32,8 +42,11 @@ export class GamesController {
 
   @Get('rounds/history')
   @ApiResponse({ status: 200, description: 'Historico de rodadas crashadas.' })
-  history() {
-    return this.getRoundHistory.execute();
+  history(@Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.getRoundHistory.execute({
+      page: parseOptionalPositiveInt(page, 'page'),
+      limit: parseOptionalPositiveInt(limit, 'limit'),
+    });
   }
 
   @Get('rounds/:roundId/verify')
@@ -46,8 +59,16 @@ export class GamesController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'Historico de apostas do jogador autenticado.' })
-  myBets(@Req() req: AuthenticatedRequest) {
-    return this.getMyBets.execute({ playerId: req.user.playerId });
+  myBets(
+    @Req() req: AuthenticatedRequest,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.getMyBets.execute({
+      playerId: req.user.playerId,
+      page: parseOptionalPositiveInt(page, 'page'),
+      limit: parseOptionalPositiveInt(limit, 'limit'),
+    });
   }
 
   @Post('bet')
@@ -83,4 +104,16 @@ function decimalToCents(amount: string): string {
   const [units, decimals = ''] = amount.split('.');
 
   return (BigInt(units) * 100n + BigInt(decimals.padEnd(2, '0'))).toString();
+}
+
+function parseOptionalPositiveInt(value: string | undefined, field: string): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!/^\d+$/.test(value)) {
+    throw new BadRequestException(`${field} must be a positive integer.`);
+  }
+
+  return Number(value);
 }

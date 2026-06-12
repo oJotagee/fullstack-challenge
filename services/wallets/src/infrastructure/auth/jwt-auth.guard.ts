@@ -21,7 +21,8 @@ type KeycloakJwtPayload = JWTPayload & {
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  private readonly issuer = process.env.KEYCLOAK_ISSUER ?? 'http://localhost:8080/realms/crash-game';
+  private readonly issuer =
+    process.env.KEYCLOAK_ISSUER ?? 'http://localhost:8080/realms/crash-game';
   private readonly clientId = process.env.KEYCLOAK_CLIENT_ID ?? 'crash-game-client';
   private readonly jwksUri =
     process.env.KEYCLOAK_JWKS_URI ??

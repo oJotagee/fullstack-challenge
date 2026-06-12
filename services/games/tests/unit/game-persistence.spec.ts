@@ -57,6 +57,7 @@ describe('Game persistence', () => {
         findUnique: mock(async () => createPrismaRound()),
         findFirst: mock(async () => createPrismaRound()),
         findMany: mock(async () => [createPrismaRound()]),
+        count: mock(async () => 1),
       },
     };
     const repository = new PrismaRoundRepository(prisma as never);
@@ -65,7 +66,8 @@ describe('Game persistence', () => {
     await repository.save(round);
     await expect(repository.findById('round-1')).resolves.toBeInstanceOf(Round);
     await expect(repository.findCurrent()).resolves.toBeInstanceOf(Round);
-    await expect(repository.findHistory(20)).resolves.toHaveLength(1);
+    await expect(repository.findHistory({ limit: 20, offset: 0 })).resolves.toHaveLength(1);
+    await expect(repository.countHistory()).resolves.toBe(1);
 
     expect(prisma.round.upsert).toHaveBeenCalledWith({
       where: { id: 'round-1' },
@@ -82,6 +84,7 @@ describe('Game persistence', () => {
         upsert: mock(async () => undefined),
         findUnique: mock(async () => createPrismaBet()),
         findMany: mock(async () => [createPrismaBet()]),
+        count: mock(async () => 1),
       },
     };
     const repository = new PrismaBetRepository(prisma as never);
@@ -89,10 +92,14 @@ describe('Game persistence', () => {
 
     await repository.save(bet);
     await expect(repository.findById('bet-1')).resolves.toBeInstanceOf(Bet);
-    await expect(repository.findByRoundIdAndPlayerId('round-1', 'player-1')).resolves.toBeInstanceOf(
-      Bet,
-    );
-    await expect(repository.findByPlayerId('player-1')).resolves.toHaveLength(1);
+    await expect(
+      repository.findByRoundIdAndPlayerId('round-1', 'player-1'),
+    ).resolves.toBeInstanceOf(Bet);
+    await expect(
+      repository.findByPlayerId('player-1', { limit: 10, offset: 0 }),
+    ).resolves.toHaveLength(1);
+    await expect(repository.findByRoundId('round-1')).resolves.toHaveLength(1);
+    await expect(repository.countByPlayerId('player-1')).resolves.toBe(1);
 
     expect(prisma.bet.upsert).toHaveBeenCalledWith({
       where: { id: 'bet-1' },
