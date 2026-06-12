@@ -5,6 +5,8 @@ type RoundProps = {
   status: RoundStatus;
   serverSeedHash: string;
   serverSeed?: string;
+  previousServerSeedHash?: string;
+  hashChainIndex?: number;
   clientSeed?: string;
   nonce?: number;
   crashPoint?: number;
@@ -23,6 +25,9 @@ export class Round {
   static createBetting(input: {
     id: string;
     serverSeedHash: string;
+    serverSeed?: string;
+    previousServerSeedHash?: string;
+    hashChainIndex?: number;
     bettingStartedAt?: Date;
     bettingEndsAt: Date;
   }): Round {
@@ -36,6 +41,9 @@ export class Round {
       id: input.id,
       status: RoundStatus.BETTING,
       serverSeedHash: input.serverSeedHash,
+      serverSeed: input.serverSeed,
+      previousServerSeedHash: input.previousServerSeedHash,
+      hashChainIndex: input.hashChainIndex,
       bettingStartedAt,
       bettingEndsAt: input.bettingEndsAt,
       createdAt: bettingStartedAt,
@@ -84,6 +92,13 @@ export class Round {
     this.props.updatedAt = settledAt;
   }
 
+  cancel(input: { cancelledAt?: Date } = {}): void {
+    const cancelledAt = input.cancelledAt ?? new Date();
+
+    this.props.status = RoundStatus.CANCELLED;
+    this.props.updatedAt = cancelledAt;
+  }
+
   canAcceptBets(at: Date = new Date()): boolean {
     return this.status === RoundStatus.BETTING && at < this.bettingEndsAt;
   }
@@ -102,6 +117,14 @@ export class Round {
 
   get serverSeed(): string | undefined {
     return this.props.serverSeed;
+  }
+
+  get previousServerSeedHash(): string | undefined {
+    return this.props.previousServerSeedHash;
+  }
+
+  get hashChainIndex(): number | undefined {
+    return this.props.hashChainIndex;
   }
 
   get clientSeed(): string | undefined {

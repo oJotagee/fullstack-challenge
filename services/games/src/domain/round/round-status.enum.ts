@@ -3,4 +3,5 @@ export enum RoundStatus {
   RUNNING = 'RUNNING',
   CRASHED = 'CRASHED',
   SETTLED = 'SETTLED',
+  CANCELLED = 'CANCELLED',
 }

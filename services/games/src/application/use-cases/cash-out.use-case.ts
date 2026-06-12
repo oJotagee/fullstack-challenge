@@ -14,7 +14,6 @@ import { CLOCK, type Clock } from '../ports/clock.port';
 
 type CashOutInput = {
   playerId: string;
-  multiplier: number;
 };
 
 type CashOutOutput = {
@@ -45,8 +44,13 @@ export class CashOutUseCase {
       throw new RoundNotRunningError();
     }
 
+    const multiplier = calculateCurrentMultiplier({
+      now: this.clock.now(),
+      runningStartedAt: round.runningStartedAt,
+    });
+
     // Cash out no ou depois do crash nao pode gerar pagamento.
-    if (round.crashPoint !== undefined && input.multiplier >= round.crashPoint) {
+    if (round.crashPoint !== undefined && multiplier >= round.crashPoint) {
       throw new RoundNotRunningError();
     }
 
@@ -59,12 +63,20 @@ export class CashOutUseCase {
     // O dominio calcula o payout em centavos e trava a bet contra novo cash out.
     const operationId = `bet:${bet.id}:credit`;
     const payoutCents = bet.cashOut({
-      multiplier: input.multiplier,
+      multiplier,
       creditOperationId: operationId,
       cashedOutAt: this.clock.now(),
     });
 
     await this.bets.save(bet);
+    await this.eventBus.publish('bet.cashed_out', {
+      roundId: round.id,
+      betId: bet.id,
+      playerId: bet.playerId,
+      username: bet.username,
+      multiplier,
+      payoutCents: payoutCents.toString(),
+    });
     // Credito tambem e responsabilidade do Wallet, nao do Game.
     await this.eventBus.publish('wallet.credit.requested', {
       operationId,
@@ -79,7 +91,18 @@ export class CashOutUseCase {
       roundId: round.id,
       status: bet.status,
       payoutCents: payoutCents.toString(),
-      multiplier: input.multiplier,
+      multiplier,
     };
   }
+}
+
+function calculateCurrentMultiplier(input: { now: Date; runningStartedAt?: Date }): number {
+  if (!input.runningStartedAt) {
+    throw new RoundNotRunningError();
+  }
+
+  const elapsedMs = Math.max(0, input.now.getTime() - input.runningStartedAt.getTime());
+  const raw = 1 + elapsedMs / 10_000;
+
+  return Math.max(1, Math.floor(raw * 100) / 100);
 }

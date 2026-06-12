@@ -48,10 +48,22 @@ describe('CrashPointCalculator', () => {
     expect(calculator.verifySeed('other-seed', hash)).toBe(false);
   });
 
+  it('creates a reverse hash chain that does not reveal future seeds', () => {
+    const calculator = new CrashPointCalculator();
+    const chain = calculator.createHashChain('terminal-secret-seed', 3);
+
+    expect(calculator.hashSeed(chain.seeds[0])).toBe(chain.rootHash);
+    expect(calculator.hashSeed(chain.seeds[1])).toBe(chain.seeds[0]);
+    expect(calculator.hashSeed(chain.seeds[2])).toBe(chain.seeds[1]);
+    expect(calculator.hashSeed(chain.seeds[0])).not.toBe(chain.seeds[1]);
+  });
+
   it('rejects invalid seeds and nonce', () => {
     const calculator = new CrashPointCalculator();
 
     expect(() => calculator.hashSeed('')).toThrow();
+    expect(() => calculator.createHashChain('', 3)).toThrow();
+    expect(() => calculator.createHashChain('terminal-secret-seed', 0)).toThrow();
     expect(() => calculator.calculate('', 'client-seed-1', 1)).toThrow();
     expect(() => calculator.calculate('server-seed-1', '', 1)).toThrow();
     expect(() => calculator.calculate('server-seed-1', 'client-seed-1', -1)).toThrow();

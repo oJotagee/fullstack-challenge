@@ -87,10 +87,9 @@ export class GamesController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiResponse({ status: 201, description: 'Realiza cash out da aposta aceita.' })
-  cashout(@Req() req: AuthenticatedRequest, @Body() body: CashOutRequestDto) {
+  cashout(@Req() req: AuthenticatedRequest, @Body() _body: CashOutRequestDto = {}) {
     return this.cashOut.execute({
       playerId: req.user.playerId,
-      multiplier: body.multiplier,
     });
   }
 }

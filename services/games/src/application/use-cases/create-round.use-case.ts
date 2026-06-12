@@ -10,8 +10,8 @@ import { Round } from '@/domain/round/round.entity';
 type CreateRoundInput = {
   bettingWindowMs?: number;
   serverSeed?: string;
-  clientSeed?: string;
-  nonce?: number;
+  previousServerSeedHash?: string;
+  hashChainIndex?: number;
 };
 
 type CreateRoundOutput = {
@@ -38,7 +38,10 @@ export class CreateRoundUseCase {
     const serverSeed = input.serverSeed ?? randomBytes(32).toString('hex');
     const round = Round.createBetting({
       id: randomUUID(),
+      serverSeed,
       serverSeedHash: this.calculator.hashSeed(serverSeed),
+      previousServerSeedHash: input.previousServerSeedHash,
+      hashChainIndex: input.hashChainIndex,
       bettingStartedAt: now,
       bettingEndsAt: new Date(now.getTime() + bettingWindowMs),
     });

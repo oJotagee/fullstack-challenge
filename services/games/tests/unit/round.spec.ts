@@ -138,6 +138,15 @@ describe('Round', () => {
     expect(round.createdAt).toBe(createdAt);
     expect(round.updatedAt).toBe(updatedAt);
   });
+
+  it('cancels an unrecoverable active round', () => {
+    const round = createRound();
+
+    round.cancel({ cancelledAt: new Date('2026-01-01T00:00:05.000Z') });
+
+    expect(round.status).toBe(RoundStatus.CANCELLED);
+    expect(round.updatedAt.toISOString()).toBe('2026-01-01T00:00:05.000Z');
+  });
 });
 
 function createRound(): Round {

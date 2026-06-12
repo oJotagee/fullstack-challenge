@@ -1,7 +1,7 @@
 import { describe, expect, it, mock } from 'bun:test';
 
-import { PrismaBetRepository } from '../../src/infrastructure/persistence/prisma-bet.repository';
 import { PrismaRoundRepository } from '../../src/infrastructure/persistence/prisma-round.repository';
+import { PrismaBetRepository } from '../../src/infrastructure/persistence/prisma-bet.repository';
 import { RoundMapper } from '../../src/infrastructure/persistence/round.mapper';
 import { BetMapper } from '../../src/infrastructure/persistence/bet.mapper';
 import { RoundStatus } from '../../src/domain/round/round-status.enum';
@@ -24,6 +24,8 @@ describe('Game persistence', () => {
       status: RoundStatus.CRASHED,
       serverSeedHash: 'hash-1',
       serverSeed: 'server-seed-1',
+      previousServerSeedHash: 'previous-hash-1',
+      hashChainIndex: 3,
       clientSeed: 'client-seed-1',
       nonce: 1,
       crashPoint: 2.5,
@@ -66,6 +68,7 @@ describe('Game persistence', () => {
     await repository.save(round);
     await expect(repository.findById('round-1')).resolves.toBeInstanceOf(Round);
     await expect(repository.findCurrent()).resolves.toBeInstanceOf(Round);
+    await expect(repository.findLatest()).resolves.toBeInstanceOf(Round);
     await expect(repository.findHistory({ limit: 20, offset: 0 })).resolves.toHaveLength(1);
     await expect(repository.countHistory()).resolves.toBe(1);
 
@@ -123,6 +126,8 @@ function createPrismaRound(): any {
     status: 'CRASHED',
     serverSeedHash: 'hash-1',
     serverSeed: 'server-seed-1',
+    previousServerSeedHash: 'previous-hash-1',
+    hashChainIndex: 3,
     clientSeed: 'client-seed-1',
     nonce: 1,
     crashPoint: 2.5,
