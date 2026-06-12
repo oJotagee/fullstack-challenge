@@ -58,9 +58,22 @@ export type WalletCreditSucceeded = EventEnvelope<
   }
 >;
 
+export type WalletCreditFailed = EventEnvelope<
+  'wallet.credit.failed',
+  {
+    operationId: string;
+    playerId: string;
+    roundId: string;
+    betId: string;
+    amountCents: string;
+    reason: 'WALLET_NOT_FOUND' | 'UNKNOWN';
+  }
+>;
+
 export type WalletEvent =
   | WalletDebitRequested
   | WalletDebitSucceeded
   | WalletDebitFailed
   | WalletCreditRequested
-  | WalletCreditSucceeded;
+  | WalletCreditSucceeded
+  | WalletCreditFailed;

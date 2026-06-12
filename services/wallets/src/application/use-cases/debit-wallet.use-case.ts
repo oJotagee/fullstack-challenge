@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { WalletRepository } from '../ports/wallet-repository.port';
 import { WALLET_REPOSITORY } from '../ports/wallet-repository.port';
 import { WalletNotFoundError } from './wallet-use-case.errors';
+import { DuplicatedWalletOperationError } from '@/domain/wallet/wallet.errors';
 import { Money } from '@/domain/money/money.vo';
 
 type DebitWalletInput = {
@@ -11,6 +12,7 @@ type DebitWalletInput = {
   operationId: string;
   roundId: string;
   betId: string;
+  idempotent?: boolean;
 };
 
 type DebitWalletOutput = {
@@ -30,14 +32,20 @@ export class DebitWalletUseCase {
     }
 
     // O dominio valida saldo, valor positivo e idempotencia por operationId.
-    wallet.debit({
-      entryId: crypto.randomUUID(),
-      operationId: input.operationId,
-      amount: Money.fromCents(input.amountCents),
-      roundId: input.roundId,
-      betId: input.betId,
-      metadata: { source: 'wallet.debit.requested' },
-    });
+    try {
+      wallet.debit({
+        entryId: crypto.randomUUID(),
+        operationId: input.operationId,
+        amount: Money.fromCents(input.amountCents),
+        roundId: input.roundId,
+        betId: input.betId,
+        metadata: { source: 'wallet.debit.requested' },
+      });
+    } catch (error) {
+      if (!input.idempotent || !(error instanceof DuplicatedWalletOperationError)) {
+        throw error;
+      }
+    }
 
     await this.wallets.save(wallet);
 

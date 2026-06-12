@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { WalletRepository } from '../ports/wallet-repository.port';
 import { WALLET_REPOSITORY } from '../ports/wallet-repository.port';
 import { WalletNotFoundError } from './wallet-use-case.errors';
+import { DuplicatedWalletOperationError } from '@/domain/wallet/wallet.errors';
 import { Money } from '@/domain/money/money.vo';
 
 type CreditWalletInput = {
@@ -11,6 +12,7 @@ type CreditWalletInput = {
   operationId: string;
   roundId: string;
   betId: string;
+  idempotent?: boolean;
 };
 
 type CreditWalletOutput = {
@@ -30,14 +32,20 @@ export class CreditWalletUseCase {
     }
 
     // O operationId impede que um evento repetido credite duas vezes.
-    wallet.credit({
-      entryId: crypto.randomUUID(),
-      operationId: input.operationId,
-      amount: Money.fromCents(input.amountCents),
-      roundId: input.roundId,
-      betId: input.betId,
-      metadata: { source: 'wallet.credit.requested' },
-    });
+    try {
+      wallet.credit({
+        entryId: crypto.randomUUID(),
+        operationId: input.operationId,
+        amount: Money.fromCents(input.amountCents),
+        roundId: input.roundId,
+        betId: input.betId,
+        metadata: { source: 'wallet.credit.requested' },
+      });
+    } catch (error) {
+      if (!input.idempotent || !(error instanceof DuplicatedWalletOperationError)) {
+        throw error;
+      }
+    }
 
     await this.wallets.save(wallet);
 
