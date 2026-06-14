@@ -152,7 +152,7 @@ export function BetPanel() {
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-white/[0.08] bg-[#0F0F23] p-4">
+    <div className="flex flex-col gap-3 rounded-xl border border-white/[0.08] bg-[#0F0F23] p-3 sm:gap-4 sm:p-4">
       {/* Amount input */}
       <div className="flex flex-col gap-1.5">
         <label htmlFor="bet-amount" className="text-xs text-white/40 font-mono">
@@ -171,7 +171,7 @@ export function BetPanel() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             disabled={!canEditBetAmount}
-            className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] pl-7 pr-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-[#22C55E]/50 focus:ring-1 focus:ring-[#22C55E]/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] py-2.5 pl-7 pr-3 font-mono text-base text-white transition-colors focus:border-[#22C55E]/50 focus:outline-none focus:ring-1 focus:ring-[#22C55E]/30 disabled:cursor-not-allowed disabled:opacity-40 sm:text-sm"
             aria-label="Valor da aposta"
           />
         </div>
@@ -183,14 +183,14 @@ export function BetPanel() {
         )}
 
         {/* Quick amounts */}
-        <div className="flex gap-1.5">
+        <div className="grid grid-cols-5 gap-1.5">
           {['5', '10', '25', '50', '100'].map((v) => (
             <button
               key={v}
               type="button"
               onClick={() => setAmount(v + '.00')}
               disabled={!canEditBetAmount}
-              className="flex-1 rounded-md border border-white/[0.06] bg-white/[0.03] py-1 text-xs text-white/50 font-mono hover:bg-white/[0.07] hover:text-white/80 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              className="min-w-0 rounded-md border border-white/[0.06] bg-white/[0.03] py-1.5 font-mono text-xs text-white/50 transition-colors hover:bg-white/[0.07] hover:text-white/80 disabled:cursor-not-allowed disabled:opacity-30"
             >
               {v}
             </button>
@@ -200,7 +200,7 @@ export function BetPanel() {
 
       {/* Countdown */}
       {phase === 'BETTING' && countdown !== null && (
-        <div className="flex items-center justify-between rounded-lg border border-[#22C55E]/20 bg-[#22C55E]/5 px-3 py-2">
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-[#22C55E]/20 bg-[#22C55E]/5 px-3 py-2">
           <span className="text-xs text-white/40 font-mono">INÍCIO EM</span>
           <span
             className="text-lg font-black text-[#22C55E] font-mono"
@@ -213,10 +213,10 @@ export function BetPanel() {
 
       {/* Potential payout */}
       {potentialPayout && (
-        <div className="flex items-center justify-between rounded-lg border border-[#22C55E]/20 bg-[#22C55E]/5 px-3 py-2">
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-[#22C55E]/20 bg-[#22C55E]/5 px-3 py-2">
           <span className="text-xs text-white/40 font-mono">PAYOUT ESTIMADO</span>
           <span
-            className="text-sm font-bold text-[#22C55E] font-mono"
+            className="shrink-0 font-mono text-sm font-bold text-[#22C55E]"
             style={{ textShadow: '0 0 8px rgba(34,197,94,0.4)' }}
           >
             $ {potentialPayout}
@@ -229,7 +229,7 @@ export function BetPanel() {
         type="button"
         onClick={() => void handleBet()}
         disabled={!canBet}
-        className="relative w-full overflow-hidden rounded-xl py-3 text-sm font-bold font-mono text-black transition-all duration-200 active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+        className="relative w-full overflow-hidden rounded-xl py-3 font-mono text-sm font-bold text-black transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-30"
         style={{
           background: canBet
             ? 'linear-gradient(135deg, #22C55E, #16A34A)'
@@ -253,7 +253,7 @@ export function BetPanel() {
         type="button"
         onClick={() => void handleCashOut()}
         disabled={!canCashOut}
-        className="relative w-full overflow-hidden rounded-xl py-3 text-sm font-bold font-mono transition-all duration-200 active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+        className="relative w-full overflow-hidden rounded-xl py-3 font-mono text-sm font-bold transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-30"
         style={{
           background: canCashOut
             ? 'linear-gradient(135deg, #F59E0B, #D97706)'
@@ -281,12 +281,12 @@ export function BetPanel() {
             <span className="text-xs text-white/40 font-mono">MINHA APOSTA</span>
             <BetStatusBadge status={myBet.status} />
           </div>
-          <div className="mt-1 flex items-center justify-between">
+          <div className="mt-1 flex items-center justify-between gap-3">
             <span className="text-sm text-white font-mono">
               $ {centsToDecimal(myBet.amountCents)}
             </span>
             {myBet.payoutCents && (
-              <span className="text-sm text-[#22C55E] font-mono">
+              <span className="shrink-0 font-mono text-sm text-[#22C55E]">
                 → $ {centsToDecimal(myBet.payoutCents)}
               </span>
             )}

@@ -32,7 +32,7 @@ export function PlayerSummary() {
   }
 
   return (
-    <div className="flex items-center justify-between gap-4 rounded-xl border border-white/[0.08] bg-[#0F0F23] px-4 py-3">
+    <div className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-white/[0.08] bg-[#0F0F23] px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3">
       {/* Username */}
       <div className="flex items-center gap-2 min-w-0">
         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#22C55E]/20 text-[#22C55E]">
@@ -51,11 +51,11 @@ export function PlayerSummary() {
             <circle cx="12" cy="7" r="4" />
           </svg>
         </div>
-        <span className="text-sm font-mono text-white/80 truncate">{username}</span>
+        <span className="truncate font-mono text-xs text-white/80 sm:text-sm">{username}</span>
       </div>
 
       {/* Balance */}
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         <div className="text-right">
           <div className="text-[10px] text-white/30 font-mono tracking-widest">SALDO</div>
           {isLoading ? (
@@ -71,7 +71,7 @@ export function PlayerSummary() {
             </button>
           ) : (
             <div
-              className="text-sm font-bold font-mono text-[#22C55E]"
+              className="font-mono text-xs font-bold text-[#22C55E] sm:text-sm"
               style={{ textShadow: '0 0 10px rgba(34,197,94,0.4)' }}
             >
               $ {wallet ? centsToDecimal(wallet.balanceCents) : '—'}

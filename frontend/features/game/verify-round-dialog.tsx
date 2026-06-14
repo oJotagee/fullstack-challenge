@@ -36,7 +36,7 @@ export function VerifyRoundDialog({ roundId, open, onClose }: VerifyRoundDialogP
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="border-white/[0.08] bg-[#0F0F23] text-white max-w-lg">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] w-[calc(100vw-1.5rem)] overflow-y-auto border-white/[0.08] bg-[#0F0F23] text-white sm:max-w-lg">
         <DialogHeader>
           <DialogTitle
             className="text-sm font-bold tracking-widest text-[#22C55E]"
@@ -53,7 +53,7 @@ export function VerifyRoundDialog({ roundId, open, onClose }: VerifyRoundDialogP
         )}
 
         {data && (
-          <div className="flex flex-col gap-4 text-xs font-mono">
+          <div className="flex flex-col gap-4 font-mono text-xs">
             <Field label="ROUND ID" value={data.roundId} />
             <Field label="SERVER SEED" value={data.serverSeed} copyable />
             <Field label="SERVER SEED HASH (SHA-256)" value={data.serverSeedHash} copyable />
@@ -61,23 +61,23 @@ export function VerifyRoundDialog({ roundId, open, onClose }: VerifyRoundDialogP
             <Field label="NONCE" value={String(data.nonce)} />
             <Field label="CRASH POINT" value={`${data.crashPoint}x`} highlight />
 
-            <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 text-white/40 leading-relaxed">
+            <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 leading-relaxed text-white/40">
               <p className="font-bold text-white/60 mb-1">Como verificar:</p>
-              <p>
-                <code className="text-[#22C55E]/70">
+              <p className="overflow-x-auto">
+                <code className="whitespace-nowrap text-[#22C55E]/70">
                   HMAC-SHA256(serverSeed, &quot;{data.clientSeed}:{data.nonce}&quot;)
                 </code>
               </p>
               <p className="mt-1">
                 Pegue os primeiros 13 caracteres hex do resultado, converta para número e aplique:
               </p>
-              <p className="mt-1">
-                <code className="text-[#22C55E]/70">
+              <p className="mt-1 overflow-x-auto">
+                <code className="whitespace-nowrap text-[#22C55E]/70">
                   result = 0.99 / max(1 - (value / 0x1fffffffffffff), 0.000001)
                 </code>
               </p>
-              <p className="mt-1">
-                <code className="text-[#22C55E]/70">
+              <p className="mt-1 overflow-x-auto">
+                <code className="whitespace-nowrap text-[#22C55E]/70">
                   crashPoint = max(1, floor(result × 100) / 100)
                 </code>
               </p>
@@ -108,9 +108,9 @@ function Field({
   return (
     <div className="flex flex-col gap-1">
       <span className="text-[10px] text-white/30 tracking-widest">{label}</span>
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-start gap-2">
         <span
-          className={`break-all font-mono text-xs ${highlight ? 'text-[#22C55E] font-bold text-sm' : 'text-white/70'}`}
+          className={`min-w-0 break-all font-mono text-xs ${highlight ? 'text-sm font-bold text-[#22C55E]' : 'text-white/70'}`}
           style={highlight ? { textShadow: '0 0 10px rgba(34,197,94,0.4)' } : undefined}
         >
           {value}

@@ -16,7 +16,7 @@ export function CurrentBetsList() {
             APOSTAS DA RODADA
           </h2>
         </div>
-        <div className="flex items-center justify-center py-8">
+      <div className="flex items-center justify-center px-4 py-8 text-center">
           <span className="text-xs text-white/20 font-mono">Nenhuma aposta ainda</span>
         </div>
       </div>
@@ -25,24 +25,24 @@ export function CurrentBetsList() {
 
   return (
     <div className="flex flex-col rounded-xl border border-white/[0.08] bg-[#0F0F23] overflow-hidden">
-      <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] px-3 py-3 sm:px-4">
         <h2 className="text-xs font-bold text-white/40 font-mono tracking-widest">
           APOSTAS DA RODADA
         </h2>
-        <span className="text-xs text-white/30 font-mono">
+        <span className="shrink-0 font-mono text-xs text-white/30">
           {bets.length} jogador{bets.length !== 1 ? 'es' : ''}
         </span>
       </div>
 
       {/* Header */}
-      <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-4 py-2 text-[10px] text-white/20 font-mono border-b border-white/[0.04]">
+      <div className="grid grid-cols-[minmax(0,1fr)_72px_72px] gap-2 border-b border-white/[0.04] px-3 py-2 font-mono text-[10px] text-white/20 sm:grid-cols-[minmax(0,1fr)_auto_80px] sm:px-4">
         <span>JOGADOR</span>
         <span className="text-right">APOSTA</span>
-        <span className="text-right w-20">STATUS</span>
+        <span className="text-right">STATUS</span>
       </div>
 
       {/* Rows */}
-      <div className="overflow-y-auto max-h-64 divide-y divide-white/[0.04]">
+      <div className="max-h-72 divide-y divide-white/[0.04] overflow-y-auto lg:max-h-64">
         {bets.map((bet) => {
           const isMe = bet.playerId === myPlayerId;
           const isCashedOut = bet.status === 'CASHED_OUT';
@@ -51,7 +51,7 @@ export function CurrentBetsList() {
           return (
             <div
               key={bet.id}
-              className={`grid grid-cols-[1fr_auto_auto] gap-2 items-center px-4 py-2.5 transition-colors ${
+              className={`grid grid-cols-[minmax(0,1fr)_72px_72px] items-center gap-2 px-3 py-2.5 transition-colors sm:grid-cols-[minmax(0,1fr)_auto_80px] sm:px-4 ${
                 isMe ? 'bg-[#22C55E]/5' : ''
               } ${isCashedOut ? 'bg-[#22C55E]/8' : ''}`}
             >
@@ -70,12 +70,12 @@ export function CurrentBetsList() {
               </div>
 
               {/* Amount */}
-              <span className="text-xs font-mono text-white/60 text-right">
+              <span className="truncate text-right font-mono text-xs text-white/60">
                 $ {centsToDecimal(bet.amountCents)}
               </span>
 
               {/* Status / payout */}
-              <div className="text-right w-20">
+              <div className="min-w-0 text-right">
                 {isCashedOut ? (
                   <div className="flex flex-col items-end">
                     <span
@@ -85,7 +85,7 @@ export function CurrentBetsList() {
                       {bet.cashoutMultiplier}x
                     </span>
                     {bet.payoutCents && (
-                      <span className="text-[9px] font-mono text-[#22C55E]/60">
+                      <span className="max-w-full truncate font-mono text-[9px] text-[#22C55E]/60">
                         $ {centsToDecimal(bet.payoutCents)}
                       </span>
                     )}

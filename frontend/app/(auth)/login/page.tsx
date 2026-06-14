@@ -13,7 +13,7 @@ export default function LoginPage() {
   }, []);
 
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#0F172A]">
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#0F172A] px-3 py-6 sm:px-4">
       {/* Grid background */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -26,19 +26,19 @@ export default function LoginPage() {
 
       {/* Radial glow center */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <div className="h-[500px] w-[500px] rounded-full bg-[#22C55E]/8 blur-[120px]" />
+        <div className="h-72 w-72 rounded-full bg-[#22C55E]/8 blur-[90px] sm:h-[500px] sm:w-[500px] sm:blur-[120px]" />
       </div>
 
       {/* Card */}
-      <div className="relative z-10 w-full max-w-sm mx-4">
+      <div className="relative z-10 w-full max-w-sm">
         <div
-          className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#1F1829]/80 p-8 backdrop-blur-sm"
+          className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#1F1829]/80 p-5 backdrop-blur-sm sm:p-8"
           style={{ boxShadow: '0 0 40px rgba(34,197,94,0.08), 0 25px 50px rgba(0,0,0,0.5)' }}
         >
           {/* Logo area */}
-          <div className="mb-8 flex flex-col items-center gap-3">
+          <div className="mb-6 flex flex-col items-center gap-3 sm:mb-8">
             <div
-              className="flex h-16 w-16 items-center justify-center rounded-xl border border-[#22C55E]/30 bg-[#22C55E]/10"
+              className="flex h-14 w-14 items-center justify-center rounded-xl border border-[#22C55E]/30 bg-[#22C55E]/10 sm:h-16 sm:w-16"
               style={{ boxShadow: '0 0 20px rgba(34,197,94,0.2)' }}
             >
               {/* Rocket / chart up icon */}
@@ -59,7 +59,7 @@ export default function LoginPage() {
             </div>
 
             <h1
-              className="text-4xl font-black tracking-widest text-white"
+              className="text-3xl font-black tracking-widest text-white sm:text-4xl"
               style={{
                 fontFamily: 'Orbitron, sans-serif',
                 textShadow: '0 0 20px rgba(34,197,94,0.5), 0 0 40px rgba(34,197,94,0.2)',
@@ -69,7 +69,7 @@ export default function LoginPage() {
             </h1>
 
             <p
-              className="text-center text-sm text-white/40"
+              className="text-center text-xs text-white/40 sm:text-sm"
               style={{ fontFamily: 'JetBrains Mono, monospace' }}
             >
               Aposte. Multiplique. Saque antes do crash.
@@ -77,13 +77,13 @@ export default function LoginPage() {
           </div>
 
           {/* Divider */}
-          <div className="mb-8 h-px bg-gradient-to-r from-transparent via-[#22C55E]/30 to-transparent" />
+          <div className="mb-6 h-px bg-gradient-to-r from-transparent via-[#22C55E]/30 to-transparent sm:mb-8" />
 
           {/* Login button */}
           <button
             type="button"
             onClick={() => void startLoginFlow()}
-            className="group relative w-full overflow-hidden rounded-xl px-6 py-3.5 text-sm font-semibold text-black transition-all duration-200 active:scale-[0.98] cursor-pointer"
+            className="group relative w-full overflow-hidden rounded-xl px-4 py-3.5 text-sm font-semibold text-black transition-all duration-200 active:scale-[0.98] sm:px-6"
             style={{
               background: 'linear-gradient(135deg, #22C55E, #16A34A)',
               boxShadow: '0 0 20px rgba(34,197,94,0.35), 0 4px 12px rgba(0,0,0,0.3)',

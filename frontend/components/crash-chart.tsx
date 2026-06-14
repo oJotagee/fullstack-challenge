@@ -4,7 +4,13 @@ import { useEffect, useRef } from 'react';
 
 import { useGameStore } from '@/features/game/game-store';
 
-const PADDING = { top: 24, right: 24, bottom: 40, left: 56 };
+function getPadding(width: number) {
+  if (width < 520) {
+    return { top: 18, right: 12, bottom: 28, left: 34 };
+  }
+
+  return { top: 24, right: 24, bottom: 40, left: 56 };
+}
 
 function getColor(phase: string) {
   if (phase === 'CRASHED') return '#EF4444';
@@ -48,8 +54,9 @@ export function CrashChart() {
 
       const W = canvas!.width;
       const H = canvas!.height;
-      const pw = W - PADDING.left - PADDING.right;
-      const ph = H - PADDING.top - PADDING.bottom;
+      const padding = getPadding(W);
+      const pw = W - padding.left - padding.right;
+      const ph = H - padding.top - padding.bottom;
 
       ctx.clearRect(0, 0, W, H);
 
@@ -63,16 +70,16 @@ export function CrashChart() {
       const gridLines = [1, 2, 5, 10, 20, 50, 100];
       for (const val of gridLines) {
         if (val > maxMult * 1.1) break;
-        const y = PADDING.top + ph - (ph * (val - 1)) / (maxMult - 1);
+        const y = padding.top + ph - (ph * (val - 1)) / (maxMult - 1);
         ctx.beginPath();
-        ctx.moveTo(PADDING.left, y);
-        ctx.lineTo(PADDING.left + pw, y);
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(padding.left + pw, y);
         ctx.stroke();
 
         ctx.fillStyle = 'rgba(255,255,255,0.3)';
-        ctx.font = '10px JetBrains Mono, monospace';
+        ctx.font = W < 520 ? '9px JetBrains Mono, monospace' : '10px JetBrains Mono, monospace';
         ctx.textAlign = 'right';
-        ctx.fillText(`${val.toFixed(0)}x`, PADDING.left - 8, y + 4);
+        ctx.fillText(`${val.toFixed(0)}x`, padding.left - 6, y + 4);
       }
 
       if (history.length < 2) {
@@ -89,8 +96,8 @@ export function CrashChart() {
       ctx.lineJoin = 'round';
 
       for (let i = 0; i < history.length; i++) {
-        const x = PADDING.left + (pw * i) / (history.length - 1);
-        const y = PADDING.top + ph - (ph * (history[i] - 1)) / Math.max(maxMult - 1, 1);
+        const x = padding.left + (pw * i) / (history.length - 1);
+        const y = padding.top + ph - (ph * (history[i] - 1)) / Math.max(maxMult - 1, 1);
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
@@ -98,12 +105,12 @@ export function CrashChart() {
       ctx.shadowBlur = 0;
 
       // Fill under curve
-      const lastX = PADDING.left + pw;
-      const baseY = PADDING.top + ph;
+      const lastX = padding.left + pw;
+      const baseY = padding.top + ph;
       ctx.lineTo(lastX, baseY);
-      ctx.lineTo(PADDING.left, baseY);
+      ctx.lineTo(padding.left, baseY);
       ctx.closePath();
-      const gradient = ctx.createLinearGradient(0, PADDING.top, 0, PADDING.top + ph);
+      const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + ph);
       gradient.addColorStop(0, `${color}33`);
       gradient.addColorStop(1, `${color}00`);
       ctx.fillStyle = gradient;
@@ -123,7 +130,7 @@ export function CrashChart() {
     <div className="relative flex flex-col h-full w-full rounded-xl border border-white/[0.08] bg-[#0F0F23] overflow-hidden">
       {/* Seed hash bar */}
       {currentRound?.serverSeedHash && (
-        <div className="flex items-center gap-2 px-4 py-2 border-b border-white/[0.06] bg-white/[0.02]">
+        <div className="flex min-w-0 items-center gap-2 border-b border-white/[0.06] bg-white/[0.02] px-3 py-2 sm:px-4">
           <svg
             width="12"
             height="12"
@@ -139,14 +146,14 @@ export function CrashChart() {
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
           <span
-            className="text-[10px] text-white/30 font-mono truncate"
+            className="min-w-0 truncate font-mono text-[9px] text-white/30 sm:text-[10px]"
             title={currentRound.serverSeedHash}
           >
             hash: {currentRound.serverSeedHash}
           </span>
           {isCrashed && currentRound.serverSeed && (
             <span
-              className="ml-2 text-[10px] text-[#22C55E]/70 font-mono truncate"
+              className="ml-1 min-w-0 truncate font-mono text-[9px] text-[#22C55E]/70 sm:ml-2 sm:text-[10px]"
               title={currentRound.serverSeed}
             >
               seed: {currentRound.serverSeed}
@@ -170,16 +177,18 @@ export function CrashChart() {
           {isBetting ? (
             <div className="flex flex-col items-center gap-1">
               <span
-                className="text-5xl font-black tracking-widest text-white/20"
+                className="text-center text-3xl font-black tracking-widest text-white/20 min-[420px]:text-4xl sm:text-5xl"
                 style={{ fontFamily: 'Orbitron, sans-serif' }}
               >
                 APOSTAS
               </span>
-              <span className="text-sm text-white/30 font-mono">aguardando início...</span>
+              <span className="font-mono text-xs text-white/30 sm:text-sm">
+                aguardando início...
+              </span>
             </div>
           ) : (
             <span
-              className="text-6xl font-black tracking-widest drop-shadow-lg transition-all duration-75"
+              className="max-w-full px-3 text-center text-4xl font-black tracking-widest drop-shadow-lg transition-all duration-75 sm:text-6xl"
               style={{
                 fontFamily: 'Orbitron, sans-serif',
                 color: isCrashed ? '#EF4444' : '#22C55E',
@@ -195,7 +204,7 @@ export function CrashChart() {
           )}
           {isCrashed && (
             <span
-              className="mt-2 text-xl font-bold text-[#EF4444]"
+              className="mt-2 text-base font-bold text-[#EF4444] sm:text-xl"
               style={{
                 fontFamily: 'Orbitron, sans-serif',
                 textShadow: '0 0 15px rgba(239,68,68,0.5)',
