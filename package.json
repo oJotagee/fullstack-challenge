@@ -4,6 +4,7 @@
   "workspaces": [
     "services/*",
     "packages/*",
+    "frontend",
     "frontend/*"
   ],
   "scripts": {
@@ -11,6 +12,7 @@
     "docker:down": "docker compose down",
     "docker:prune": "docker compose down -v --remove-orphans",
     "test": "bun test",
+    "test:e2e": "playwright test",
     "prisma:generate:games": "bunx prisma generate --config services/games/prisma.config.ts",
     "prisma:generate:wallets": "bunx prisma generate --config services/wallets/prisma.config.ts",
     "prisma:generate": "bun run prisma:generate:games && bun run prisma:generate:wallets",
@@ -21,6 +23,7 @@
     "prisma:migrate:reset": "bun run prisma:migrate:reset:games && bun run prisma:migrate:reset:wallets",
     "prisma:studio:games": "bunx prisma studio --config services/games/prisma.config.ts",
     "prisma:studio:wallets": "bunx prisma studio --config services/wallets/prisma.config.ts",
+    "prisma:seed:wallets": "bunx prisma db seed --config services/wallets/prisma.config.ts",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "test:wallets": "bun --cwd services/wallets test",
     "test:games": "bun --cwd services/games test",
@@ -31,14 +34,18 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.60.0",
     "@types/node": "^25.9.3",
+    "@types/pg": "^8.20.0",
     "bun-types": "latest",
     "dotenv": "^17.4.2",
     "eslint": "^10.4.1",
     "eslint-config-prettier": "^10.1.8",
+    "pg": "^8.21.0",
     "prettier": "^3.8.4",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prisma": "^7.8.0",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.61.0"
   },
   "dependencies": {

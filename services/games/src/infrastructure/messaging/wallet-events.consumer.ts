@@ -8,6 +8,7 @@ import type {
 } from '@crash/shared/events';
 
 import { WalletEventsHandler } from '@/application/sagas/wallet-events.handler';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 
 const EXCHANGE = 'crash.events';
 const QUEUE = 'games.wallet-events';
@@ -21,7 +22,10 @@ export class WalletEventsConsumer implements OnModuleInit, OnModuleDestroy {
   private connection?: ChannelModel;
   private channel?: Channel;
 
-  constructor(private readonly handler: WalletEventsHandler) {}
+  constructor(
+    private readonly handler: WalletEventsHandler,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async onModuleInit(): Promise<void> {
     const rabbitMqUrl = process.env.RABBITMQ_URL ?? 'amqp://admin:admin@rabbitmq:5672';
@@ -54,12 +58,84 @@ export class WalletEventsConsumer implements OnModuleInit, OnModuleDestroy {
 
     try {
       const event = JSON.parse(message.content.toString()) as GameWalletEvent;
+      const canProcess = await this.markInboxProcessing(event.eventId, event.type);
+
+      if (!canProcess) {
+        this.channel.ack(message);
+        return;
+      }
 
       await this.handler.handle(event);
+      await this.markInboxProcessed(event.eventId);
       this.channel.ack(message);
     } catch (error) {
       this.logger.error('Failed to process wallet event.', error);
+      await this.markInboxFailed(message, error);
       this.channel.nack(message, false, true);
+    }
+  }
+
+  private async markInboxProcessing(eventId: string, type: string): Promise<boolean> {
+    const existing = await this.prisma.inboxEvent.findUnique({ where: { eventId } });
+
+    if (existing?.status === 'PROCESSED') {
+      return false;
+    }
+
+    if (existing) {
+      await this.prisma.inboxEvent.update({
+        where: { eventId },
+        data: {
+          status: 'PROCESSING',
+          attempts: { increment: 1 },
+          lastError: null,
+        },
+      });
+      return true;
+    }
+
+    await this.prisma.inboxEvent.create({
+      data: {
+        eventId,
+        type,
+        status: 'PROCESSING',
+        attempts: 1,
+      },
+    });
+
+    return true;
+  }
+
+  private async markInboxProcessed(eventId: string): Promise<void> {
+    await this.prisma.inboxEvent.update({
+      where: { eventId },
+      data: {
+        status: 'PROCESSED',
+        processedAt: new Date(),
+        lastError: null,
+      },
+    });
+  }
+
+  private async markInboxFailed(message: ConsumeMessage, error: unknown): Promise<void> {
+    try {
+      const event = JSON.parse(message.content.toString()) as GameWalletEvent;
+      await this.prisma.inboxEvent.upsert({
+        where: { eventId: event.eventId },
+        create: {
+          eventId: event.eventId,
+          type: event.type,
+          status: 'FAILED',
+          attempts: 1,
+          lastError: error instanceof Error ? error.message : 'Unknown processing error',
+        },
+        update: {
+          status: 'FAILED',
+          lastError: error instanceof Error ? error.message : 'Unknown processing error',
+        },
+      });
+    } catch (inboxError) {
+      this.logger.error('Failed to mark inbox event as failed.', inboxError);
     }
   }
 }

@@ -18,11 +18,11 @@ export class PrismaRoundRepository implements RoundRepository {
   }
 
   async findCurrent(): Promise<Round | null> {
-    // Rodada atual e a ultima ainda aberta para aposta ou em execucao.
+    // Rodada atual e a ultima rodada visivel para a UI, inclusive no intervalo ate a proxima.
     const round = await this.prisma.round.findFirst({
       where: {
         status: {
-          in: [RoundStatus.BETTING, RoundStatus.RUNNING],
+          in: [RoundStatus.BETTING, RoundStatus.RUNNING, RoundStatus.CRASHED, RoundStatus.SETTLED],
         },
       },
       orderBy: { createdAt: 'desc' },

@@ -7,6 +7,7 @@ COPY package.json bun.lock ./
 COPY services/games/package.json services/games/package.json
 COPY services/wallets/package.json services/wallets/package.json
 COPY packages/shared/package.json packages/shared/package.json
+COPY frontend/package.json frontend/package.json
 RUN bun install --frozen-lockfile
 
 COPY . .

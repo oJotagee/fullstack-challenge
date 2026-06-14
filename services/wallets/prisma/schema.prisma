@@ -43,3 +43,30 @@ model LedgerEntry {
   @@index([roundId, betId])
   @@map("ledger_entries")
 }
+
+model OutboxEvent {
+  eventId     String    @id @map("event_id")
+  type        String
+  payload     Json
+  occurredAt  DateTime  @map("occurred_at")
+  publishedAt DateTime? @map("published_at")
+  attempts    Int       @default(0)
+  lastError   String?   @map("last_error")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([publishedAt, createdAt])
+  @@map("outbox_events")
+}
+
+model InboxEvent {
+  eventId     String    @id @map("event_id")
+  type        String
+  status      String
+  attempts    Int       @default(0)
+  lastError   String?   @map("last_error")
+  receivedAt  DateTime  @default(now()) @map("received_at")
+  processedAt DateTime? @map("processed_at")
+
+  @@index([status])
+  @@map("inbox_events")
+}
