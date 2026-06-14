@@ -65,7 +65,12 @@ class FakeRoundRepository implements RoundRepository {
     // Simula a busca da rodada ativa que o repository Prisma fara no banco.
     return (
       [...this.rounds.values()].find((round) =>
-        [RoundStatus.BETTING, RoundStatus.RUNNING].includes(round.status),
+        [
+          RoundStatus.BETTING,
+          RoundStatus.RUNNING,
+          RoundStatus.CRASHED,
+          RoundStatus.SETTLED,
+        ].includes(round.status),
       ) ?? null
     );
   }
