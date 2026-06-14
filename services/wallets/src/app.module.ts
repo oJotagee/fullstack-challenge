@@ -1,10 +1,12 @@
+import { APP_FILTER } from '@nestjs/core';
 import { Module } from '@nestjs/common';
 
 import { WalletCommandEventsHandler } from './application/handlers/wallet-command-events.handler';
 import { PrismaWalletRepository } from './infrastructure/persistence/prisma-wallet.repository';
 import { WalletCommandConsumer } from './infrastructure/messaging/wallet-command.consumer';
-import { CreateWalletUseCase } from './application/use-cases/create-wallet.use-case';
+import { WalletExceptionFilter } from './presentation/filters/wallet-exception.filter';
 import { CreditWalletUseCase } from './application/use-cases/credit-wallet.use-case';
+import { CreateWalletUseCase } from './application/use-cases/create-wallet.use-case';
 import { GetMyWalletUseCase } from './application/use-cases/get-my-wallet.use-case';
 import { DebitWalletUseCase } from './application/use-cases/debit-wallet.use-case';
 import { WalletsController } from './presentation/controllers/wallets.controller';
@@ -24,6 +26,10 @@ import { EVENT_BUS } from './application/ports/event-bus.port';
     CreditWalletUseCase,
     WalletCommandEventsHandler,
     WalletCommandConsumer,
+    {
+      provide: APP_FILTER,
+      useClass: WalletExceptionFilter,
+    },
     {
       provide: EVENT_BUS,
       useClass: RabbitMqEventBus,
