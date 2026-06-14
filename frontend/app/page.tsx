@@ -1,3 +1,12 @@
+'use client';
+
+import { GamePage } from '@/features/game/game-page';
+import { ProtectedRoute } from '@/features/auth/protected-route';
+
 export default function Home() {
-  return <h1 className="text-3xl font-bold underline">Hello world!</h1>;
+  return (
+    <ProtectedRoute>
+      <GamePage />
+    </ProtectedRoute>
+  );
 }
