@@ -18,6 +18,13 @@ Backend e frontend de um Crash Game multiplayer em tempo real. O projeto usa doi
 
 ## Setup
 
+Clone o repositorio e entre na pasta:
+
+```bash
+git clone <url-do-repositorio>
+cd fullstack-challenge
+```
+
 Instale as dependencias:
 
 ```bash
@@ -35,6 +42,22 @@ cp services/wallets/.env.example services/wallets/.env
 
 Os `.env` dos servicos apontam para os nomes dos containers (`postgres`, `rabbitmq`, `keycloak`). A raiz `.env` alimenta os argumentos do frontend no Docker Compose.
 
+## Seed
+
+No fluxo principal com Docker, o seed da Wallet roda automaticamente junto com a subida da stack:
+
+```bash
+bun run docker:up
+```
+
+Esse comando builda os servicos, roda `prisma generate`, aplica migrations, executa o seed da Wallet e inicia o projeto completo.
+
+Se precisar rodar o seed manualmente fora do Docker:
+
+```bash
+bun run prisma:seed:wallets
+```
+
 ## Rodar
 
 Suba tudo com Docker Compose:
@@ -43,7 +66,7 @@ Suba tudo com Docker Compose:
 bun run docker:up
 ```
 
-Esse comando builda os servicos, roda `prisma generate`, aplica migrations, executa seed da Wallet e inicia a stack.
+Esse comando sobe PostgreSQL, RabbitMQ, Keycloak, Kong, Game Service, Wallet Service e Frontend.
 
 Para parar:
 
