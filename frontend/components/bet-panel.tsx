@@ -56,22 +56,28 @@ export function BetPanel() {
 
   // Countdown timer during BETTING phase
   useEffect(() => {
-    if (phase === 'BETTING' && currentRound?.bettingEndsAt) {
-      const tick = () => {
-        const remaining = Math.max(
-          0,
-          Math.ceil((new Date(currentRound.bettingEndsAt!).getTime() - Date.now()) / 1000),
-        );
-        setCountdown(remaining);
-      };
-      tick();
-      intervalRef.current = setInterval(tick, 500);
-    } else {
-      setCountdown(null);
+    if (phase !== 'BETTING' || !currentRound?.bettingEndsAt) {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = null;
+      return;
     }
+
+    const bettingEndsAt = currentRound.bettingEndsAt;
+    const tick = () => {
+      const remaining = Math.max(
+        0,
+        Math.ceil((new Date(bettingEndsAt).getTime() - Date.now()) / 1000),
+      );
+      setCountdown(remaining);
+    };
+
+    tick();
+    intervalRef.current = setInterval(tick, 500);
+
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = null;
+      setCountdown(null);
     };
   }, [phase, currentRound?.bettingEndsAt]);
 

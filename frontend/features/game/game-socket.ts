@@ -11,11 +11,6 @@ interface BettingStartedPayload {
   bettingEndsAt: string;
 }
 
-interface RunningStartedPayload {
-  roundId: string;
-  startedAt: string;
-}
-
 interface MultiplierTickPayload {
   roundId: string;
   multiplier: number;
@@ -83,7 +78,7 @@ export function connectGameSocket(myPlayerId: string | null): () => void {
     );
   };
 
-  const onRunningStarted = (_payload: RunningStartedPayload) => {
+  const onRunningStarted = () => {
     useGameStore.getState().setPhase('RUNNING');
   };
 

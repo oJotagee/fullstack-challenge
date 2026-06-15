@@ -26,7 +26,7 @@ interface GameState {
   resetRound: () => void;
 }
 
-export const useGameStore = create<GameState>((set, get) => ({
+export const useGameStore = create<GameState>((set) => ({
   phase: 'IDLE',
   currentRound: null,
   multiplier: 1,
