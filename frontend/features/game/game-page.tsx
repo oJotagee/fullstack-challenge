@@ -31,20 +31,22 @@ export function GamePage() {
       </header>
 
       {/* Main layout */}
-      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-3 p-3 sm:gap-4 sm:p-4 lg:flex-row lg:items-start">
+      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-3 p-3 sm:gap-4 sm:p-4 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start xl:grid-cols-[minmax(0,1fr)_22rem]">
         {/* Left column: chart + history */}
-        <div className="flex min-w-0 flex-1 flex-col gap-3 sm:gap-4">
+        <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-4">
           {/* Chart */}
-          <div className="h-[52dvh] min-h-72 max-h-[520px] sm:h-80 lg:h-[28rem]">
+          <div className="order-1 h-[52dvh] min-h-72 max-h-[520px] sm:h-80 lg:order-none lg:h-[28rem]">
             <CrashChart />
           </div>
 
           {/* Round history */}
-          <RoundHistory />
+          <div className="order-4 lg:order-none">
+            <RoundHistory />
+          </div>
         </div>
 
         {/* Right column: bet panel + bets list */}
-        <div className="flex w-full shrink-0 flex-col gap-3 sm:gap-4 lg:w-80 xl:w-88">
+        <div className="order-2 flex w-full shrink-0 flex-col gap-3 sm:gap-4 lg:order-none lg:w-auto">
           <BetPanel />
           <CurrentBetsList />
         </div>
